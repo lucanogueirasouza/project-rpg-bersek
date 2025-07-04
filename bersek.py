@@ -1,4 +1,5 @@
 from time import sleep
+from random import randint
 
 personagem = None
 
@@ -17,7 +18,7 @@ def comecar_jogo():
     if escolha2 == 'sim':
         tempo()
         print("O destino espera por você...\n")
-        menu_principal()  # Chama o menu do jogo
+        menu_principal()
     else:
         print("Você fugiu do destino. Fim.")
 
@@ -26,7 +27,7 @@ def criarPersonagem():
     if personagem: 
         print("Você já tem um personagem.")
     else: 
-        nome = str(input("Digite o nome do seu personagem: ")).strip().capitalize()
+        nome = input("Digite o nome do seu personagem: ").strip().capitalize()
 
         espadachim = {
             "Nome": nome,
@@ -85,39 +86,150 @@ def mostrar_status():
     global personagem
     linha()
     if not personagem: 
-        print("Você não tem um personagem criado. Crie um!")
+        print(
+            "Você não tem um personagem criado. Crie um!"
+            )
     else: 
         for chave, valor in personagem.items():
-            if chave == "Marca" and valor == True:
-                print("Maldição: Você ESTÁ amaldiçoado!")
-            elif chave == "Marca" and valor == False:
-                print("Maldição: Você NÃO está amaldiçoado.")
+            if chave == "Marca":
+                if valor:
+                    print(
+                        "Maldição: Você ESTÁ amaldiçoado!"
+                        )
+                else:
+                    print(
+                        "Maldição: Você NÃO está amaldiçoado."
+                        )
             else:
-                print(f"{chave}: {valor}")
+                print(
+                    f"{chave}: {valor}"
+                    )
     linha()
-    
-def ganhar_xp(personagem, exp):
-    print(f"voce ganhou {exp} exp parabens")
-    personagem['exp'] += exp
-    if personagem['exp'] >= exp:
-        subir_nivel(personagem)
 
-def subir_nivel(personagem):
-    personagem['exp'] -= 100
-    personagem['level'] += 1
-    personagem['vida Max'] += 20
+def batalha():
+    global personagem
+    if not personagem:
+        print(
+            "Crie um personagem antes de lutar."
+            )
+        return
 
-    if personagem['vida'] == personagem['vida max']:
-        print('parabens voce subil de nivel uhul👌')
+    nivel_personagem = personagem["Nivel"]
 
-    if  personagem['classe'] == 'espadachim':
-        personagem['forca'] += 3
-        personagem['precisao'] += 1
+    inimigo = { 
+        "Vida": 50 * nivel_personagem,
+        "Forca": 10 * nivel_personagem,
+        "Experiencia": 30 * nivel_personagem,
+    }
 
-    elif personagem['classe'] == 'assassino':
-         personagem['forca'] += 2
-         personagem['precisao'] += 2
+    print(
+        "\n--- Inimigo ---"
+        )
+    for chave, valor in inimigo.items():
+        print(
+            f"{chave}: {valor}"
+            )
+    linha()
 
-    elif personagem['classe'] == 'arqueiro':
-         personagem['forca'] += 1
-         personagem['precisao'] += 3
+    contador = 0
+    perdeu = None
+
+    while personagem["Vida"] > 0 and inimigo["Vida"] > 0: 
+        escolha = int(input(
+            "[1] - Atacar\n[2] - Tentar fugir\nEscolha: "
+            ))
+
+        if escolha == 1:
+            dano = personagem["Forca"] + (personagem["Precisao"] // 4)
+            inimigo["Vida"] -= dano
+            print(
+                f"Você causou {dano} de dano. Vida do inimigo: {inimigo['Vida']}"
+                )
+            contador += 1
+            if contador >= 1:
+                dano_extra = (personagem["Forca"] // 2) + (personagem["Precisao"] // 4)
+                inimigo["Vida"] -= dano_extra
+                print(
+                    f"Ataque adicional! Você causou {dano_extra} de dano extra. Vida do inimigo: {inimigo['Vida']}"
+                    )
+
+            if inimigo["Vida"] > 0:
+                dano_inimigo = inimigo["Forca"]
+                personagem["Vida"] -= dano_inimigo
+                print(
+                    f"O inimigo atacou! Você perdeu {dano_inimigo} de vida. Vida atual: {personagem['Vida']}"
+                    )
+
+        elif escolha == 2: 
+            classe = personagem["Classe"]
+            chance = 0
+            sucesso = False
+
+            if classe == "Assassino":
+                sucesso = True
+            elif classe == "Arqueiro":
+                sucesso = randint(1,100) <= 30
+            elif classe == "Espadachim":
+                sucesso = randint(1,100) <= 20
+
+            if sucesso:
+                print(
+                    "Você conseguiu fugir!"
+                    )
+                return None
+            else:
+                print(
+                    "Falha na fuga! O inimigo ataca!"
+                    )
+                dano = inimigo["Forca"]
+                personagem["Vida"] -= dano
+                print(
+                    f"Você recebeu {dano} de dano. Vida atual: {personagem['Vida']}"
+                    )
+                if personagem["Vida"] <= 0:
+                    print(
+                        "Você foi derrotado..."
+                        )
+                    perdeu = True
+                    break
+
+    if personagem["Vida"] <= 0:
+        perdeu = True
+
+    if perdeu == True: 
+        chance_marca = 25
+        if randint(1,100) <= chance_marca: 
+            print(
+                "Você não foi amaldiçoado."
+                )
+            personagem["Marca"] = False
+        else: 
+            print(
+                "Você foi amaldiçoado!"
+                )
+            personagem["Marca"] = True
+
+    elif inimigo["Vida"] <= 0:
+        print("Você venceu a batalha!")
+        personagem["EXP"] += inimigo["Experiencia"]
+        print(
+            f"Você ganhou {inimigo['Experiencia']} de experiência!"
+            )
+
+        if personagem["EXP"] >= 100:
+            personagem["Nivel"] += 1
+            personagem["EXP"] = 0
+            print(
+                "Parabéns! Você subiu de nível!"
+                )
+
+        chance_espada = 10
+        if randint(1,100) <= chance_espada: 
+            print(
+                "VOCÊ ENCONTROU A ESPADA DO BERSEKER!!"
+                )
+            personagem["Forca"] += 5
+        else: 
+            print(
+                "Não foi dessa vez que você encontrou a espada. Lute e tente novamente."
+                )
