@@ -95,3 +95,29 @@ def mostrar_status():
             else:
                 print(f"{chave}: {valor}")
     linha()
+    
+def ganhar_xp(personagem, exp):
+    print(f"voce ganhou {exp} exp parabens")
+    personagem['exp'] += exp
+    if personagem['exp'] >= exp:
+        subir_nivel(personagem)
+
+def subir_nivel(personagem):
+    personagem['exp'] -= 100
+    personagem['level'] += 1
+    personagem['vida Max'] += 20
+
+    if personagem['vida'] == personagem['vida max']:
+        print('parabens voce subil de nivel uhul👌')
+
+    if  personagem['classe'] == 'espadachim':
+        personagem['forca'] += 3
+        personagem['precisao'] += 1
+
+    elif personagem['classe'] == 'assassino':
+         personagem['forca'] += 2
+         personagem['precisao'] += 2
+
+    elif personagem['classe'] == 'arqueiro':
+         personagem['forca'] += 1
+         personagem['precisao'] += 3
